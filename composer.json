@@ -1,0 +1,22 @@
+{
+  "name": "webcito/xiopd.webcito.de",
+  "description": "description",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "thomas",
+      "email": "email@example.com"
+    }
+  ],
+  "require": {
+    "components/font-awesome": "6.5.2",
+    "components/jquery": "3.6.0",
+    "twbs/bootstrap": "v5.3.3",
+    "twbs/bootstrap-icons": "v1.11.3",
+    "php": "^8.2",
+    "ext-dom": "*",
+    "ext-libxml": "*",
+    "ext-simplexml": "*"
+  }
+}
