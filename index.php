@@ -8,9 +8,9 @@ if (!empty($_FILES)) {
     $request = new CheckRequests(
             values: filter_input_array(INPUT_POST, [
                     'version' => FILTER_VALIDATE_FLOAT,
-        ]),
-        required: ['version'],
-        filesRequired: ['xml']
+            ]),
+            required: ['version'],
+            filesRequired: ['xml']
     );
     if ($request->ok()) {
         $xiopd = new XIOPD(version: $request->val('version'), xml: $request->getFile('xml')['tmp_name']);
@@ -39,6 +39,7 @@ SUCCESS;
                 $xiopd->validateLogic();
             } catch (Exception $e) {
             }
+            echo $xiopd->renderXiOpdTable();
         } else {
             echo($xiopd->displayErrorsAsTable());
         }
@@ -52,8 +53,7 @@ SUCCESS;
 </div>
 MODAL;
 
-    }
-    else{
+    } else {
         print_r($request->getErrors());
     }
 }

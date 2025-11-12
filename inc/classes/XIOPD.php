@@ -33,6 +33,8 @@ class XIOPD
     public ?string $content = null;
     /** @noinspection PhpUnused */
     public bool $xmlAsString = false;
+
+    public string $table = "";
     /**
      * @var string
      */
@@ -62,6 +64,142 @@ class XIOPD
 
         $this->content = $contents;
     }
+
+    /**
+     * Parse xi:opd XML, calculate totals (including nested Jumbos/Sets)
+     * and render a Bootstrap 5 table.
+     *
+     * Rules implemented:
+     * - Preisvererbung nach oben
+     * - Vorrang von TOTALPRICE gegenüber berechnetem Preis
+     * - Mengenvererbung (Multiplikation in Sets/Jumbos)
+     * - MwSt pro Position
+     * - PRODUCT, LABOUR, EXTERNAL_SERVICE berücksichtigt
+     */
+    public function renderXiOpdTable(): string
+    {
+        $xmlString = $this->content;
+        $xml = simplexml_load_string($xmlString);
+        if (!$xml) return "<div class='alert alert-danger'>Invalid XML</div>";
+
+        // rekursive Hilfsfunktion
+        $parsePosition = function($position, $multiplier = 1) use (&$parsePosition) {
+            $rows = [];
+            $sumNet = 0.0;
+
+            foreach ($position as $pos) {
+                if ($pos->getName() !== 'POSITION') continue;
+
+                $qty = (float)($pos->POSITION_QTY ?? 1);
+                $unit = (string)($pos->POSITION_UNIT ?? '');
+                $vat = (float)($pos->POSITION_VAT ?? 0);
+                $desc = (string)($pos->TEXT ?? '');
+                $price = (float)($pos->POSITION_PRICE ?? 0);
+                $total = (float)($pos->POSITION_TOTALPRICE ?? 0);
+
+                // Kostenanteile berücksichtigen
+                $subTotal = 0;
+                if ($total > 0) {
+                    $subTotal = $total;
+                } else {
+                    // PRODUCT
+                    if (isset($pos->PRODUCT)) {
+                        $p = $pos->PRODUCT;
+                        $pTotal = (float)($p->TOTALPRICE ?? 0);
+                        if (!$pTotal && isset($p->PRICE) && isset($p->QTY))
+                            $pTotal = (float)$p->PRICE * (float)$p->QTY / (float)($p->PRICEBASE ?: 1);
+                        $subTotal += $pTotal;
+                    }
+                    // LABOUR
+                    if (isset($pos->LABOUR)) {
+                        $l = $pos->LABOUR;
+                        $lTotal = (float)($l->LABOUR_TOTALPRICE ?? 0);
+                        if (!$lTotal && isset($l->LABOUR_PRICE) && isset($l->LABOUR_TIME))
+                            $lTotal = (float)$l->LABOUR_PRICE / (float)($l->LABOUR_PRICEBASE ?: 1) * (float)$l->LABOUR_TIME;
+                        $subTotal += $lTotal;
+                    }
+                    // EXTERNAL_SERVICE
+                    if (isset($pos->EXTERNAL_SERVICE)) {
+                        $e = $pos->EXTERNAL_SERVICE;
+                        $eTotal = (float)($e->EXTERNAL_SERVICE_TOTALPRICE ?? 0);
+                        if (!$eTotal && isset($e->EXTERNAL_SERVICE_PRICE) && isset($e->EXTERNAL_SERVICE_QTY))
+                            $eTotal = (float)$e->EXTERNAL_SERVICE_PRICE * (float)$e->EXTERNAL_SERVICE_QTY / (float)($e->EXTERNAL_SERVICE_PRICEBASE ?: 1);
+                        $subTotal += $eTotal;
+                    }
+                    // Falls Unterpositionen vorhanden → rekursiv berechnen
+                    if ($pos->POSITION) {
+                        [$subRows, $childSum] = $parsePosition($pos->POSITION, $multiplier * $qty);
+                        $rows = array_merge($rows, $subRows);
+                        $subTotal += $childSum;
+                    }
+                    // Falls kein Total angegeben, aber Preis & Menge
+                    if (!$subTotal && $price && $qty) {
+                        $subTotal = $price * $qty;
+                    }
+                }
+
+                $lineTotal = $subTotal * $multiplier;
+                $sumNet += $lineTotal;
+
+                $rows[] = [
+                    'nr' => (string)$pos->POSITIONNUMBER,
+                    'desc' => htmlspecialchars($desc),
+                    'qty' => $qty * $multiplier,
+                    'unit' => $unit,
+                    'price' => $price,
+                    'vat' => $vat,
+                    'total' => $lineTotal
+                ];
+            }
+
+            return [$rows, $sumNet];
+        };
+
+        [$rows, $sumNet] = $parsePosition($xml->POSITION);
+        $sumVat = 0.0;
+        foreach ($rows as $r) $sumVat += $r['total'] * $r['vat'] / 100;
+        $sumGross = $sumNet + $sumVat;
+
+        ob_start();
+        ?>
+        <table class="table table-bordered table-striped table-sm align-middle">
+            <thead class="table-light">
+            <tr>
+                <th>Pos.</th>
+                <th>Beschreibung</th>
+                <th class="text-end">Menge</th>
+                <th>Einheit</th>
+                <th class="text-end">Einzelpreis (€)</th>
+                <th class="text-end">MwSt (%)</th>
+                <th class="text-end">Gesamt (€)</th>
+            </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($rows as $r): ?>
+                <tr>
+                    <td><?= $r['nr'] ?></td>
+                    <td><?= $r['desc'] ?></td>
+                    <td class="text-end"><?= number_format($r['qty'], 2, ',', '.') ?></td>
+                    <td><?= $r['unit'] ?></td>
+                    <td class="text-end"><?= number_format($r['price'], 2, ',', '.') ?></td>
+                    <td class="text-end"><?= number_format($r['vat'], 0) ?></td>
+                    <td class="text-end"><?= number_format($r['total'], 2, ',', '.') ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+            <tfoot class="table-secondary">
+            <tr><th colspan="6" class="text-end">Zwischensumme netto</th>
+                <th class="text-end"><?= number_format($sumNet, 2, ',', '.') ?></th></tr>
+            <tr><th colspan="6" class="text-end">MwSt gesamt</th>
+                <th class="text-end"><?= number_format($sumVat, 2, ',', '.') ?></th></tr>
+            <tr><th colspan="6" class="text-end">Gesamtsumme brutto</th>
+                <th class="text-end"><?= number_format($sumGross, 2, ',', '.') ?></th></tr>
+            </tfoot>
+        </table>
+        <?php
+        return ob_get_clean();
+    }
+
 
     /**
      * Validate Incoming Feeds against Listing Schema
