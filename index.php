@@ -20,7 +20,7 @@ if (!empty($_FILES)) {
             $validated = false;
         }
         echo <<<MODAL
-	<div class="modal" id="modal_result" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal" id="modal_result" tabindex="-1" data-bs-backdrop="static" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl ">
     <div class="modal-content">
       <div class="modal-header">
@@ -102,7 +102,6 @@ MODAL;
                 <a href="inc/Handbuch-xi-opd_V1.0.pdf" download>Manual (german) V1</a>
                 <a href="inc/Exchange_Interface_Open_ProjectData_102.xsd" download>download xsd Scheme V1</a>
             </div>
-
         </form>
     </section>
 </main>
