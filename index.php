@@ -36,10 +36,12 @@ MODAL;
 	    </div>
 SUCCESS;
             try {
-                $xiopd->validateLogic();
+                if ($xiopd->validateLogic(false)) {
+                    echo $xiopd->renderXiOpdTable();
+                }
             } catch (Exception $e) {
             }
-            echo $xiopd->renderXiOpdTable();
+
         } else {
             echo($xiopd->displayErrorsAsTable());
         }
