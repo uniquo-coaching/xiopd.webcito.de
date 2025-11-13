@@ -120,7 +120,7 @@ class XIOPD
                 </tr>
                 </thead>
                 <tbody>
-                <?php foreach ($roots as $root): ?><?= $this->xRenderNode($root, 0) ?><?php endforeach; ?>
+                <?php foreach ($roots as $root): ?><?= $this->xRenderNode($root) ?><?php endforeach; ?>
                 </tbody>
                 <tfoot>
                 <tr class="table-light fw-bold">
@@ -278,7 +278,7 @@ class XIOPD
                     $c = $gp['cmp'];
                     $details = trim(($c['artno'] ?? '') . ' ' . ($c['text'] ?? ''));
                     $gtin = isset($c['gtin']) && $c['gtin'] !== '' ? ' | GTIN: ' . $this->xEsc((string)$c['gtin']) : '';
-                    $ep = isset($c['price']) && $c['price'] !== null ? $this->xMoney(
+                    $ep = isset($c['price']) ? $this->xMoney(
                                     (float)$c['price']
                             ) . ((isset($c['pbase']) && (float)$c['pbase'] !== 1.0) ? ' / ' . $this->xEsc(
                                             (string)$c['pbase']
@@ -325,10 +325,10 @@ class XIOPD
                         $gtin = isset($c['gtin']) && $c['gtin'] !== '' ? ' | GTIN: ' . $this->xEsc(
                                         (string)$c['gtin']
                                 ) : '';
-                        $bp = isset($c['baseprice']) && $c['baseprice'] !== null ? ' (Base: ' . $this->xMoney(
+                        $bp = isset($c['baseprice']) ? ' (Base: ' . $this->xMoney(
                                         (float)$c['baseprice']
                                 ) . ')' : '';
-                        $ep = isset($c['price']) && $c['price'] !== null ? $this->xMoney(
+                        $ep = isset($c['price']) ? $this->xMoney(
                                         (float)$c['price']
                                 ) . ((isset($c['pbase']) && (float)$c['pbase'] !== 1.0) ? ' / ' . $this->xEsc(
                                                 (string)$c['pbase']
@@ -343,7 +343,7 @@ class XIOPD
                         </tr>
                     <?php elseif ($type === 'LABOUR'):
                         $kind = (string)($c['kind'] ?? 'Labour');
-                        $ep = (isset($c['price']) && $c['price'] !== null) ? $this->xMoney(
+                        $ep = (isset($c['price'])) ? $this->xMoney(
                                         (float)$c['price']
                                 ) . (isset($c['pbase']) && (float)$c['pbase'] ? ' / ' . (int)$c['pbase'] . ' ' . ($this->xEsc(
                                                 (string)($c['unit'] ?? 'MIN')
@@ -358,7 +358,7 @@ class XIOPD
                         </tr>
                     <?php else:
                         $kind = (string)($c['kind'] ?? 'External service');
-                        $ep = (isset($c['price']) && $c['price'] !== null) ? $this->xMoney(
+                        $ep = (isset($c['price'])) ? $this->xMoney(
                                         (float)$c['price']
                                 ) . ((isset($c['pbase']) && (float)$c['pbase'] !== 1.0) ? ' / ' . $this->xEsc(
                                                 (string)$c['pbase']
@@ -416,10 +416,10 @@ class XIOPD
         }
     }
 
-    protected function xBuildNode(\SimpleXMLElement $pos, bool $pushUp, string $pushUpMode): array
+    protected function xBuildNode(SimpleXMLElement $pos, bool $pushUp, string $pushUpMode): array
     {
         $num = isset($pos->POSITIONNUMBER) ? trim((string)$pos->POSITIONNUMBER) : '';
-        $text = $this->xText($pos, 'shortdescription') ? : $this->xText($pos, '');
+        $text = $this->xText($pos) ? : $this->xText($pos, '');
         $long = $this->xLongHtml($pos);
         $qty = $this->xQtyOf($pos);
         $unit = $this->xUnitOf($pos);
@@ -436,7 +436,7 @@ class XIOPD
 
         // Pauschalposition
         if (isset($pos->POSITION_TOTALPRICE) && trim((string)$pos->POSITION_TOTALPRICE) !== '') {
-            $explicit = (float)$this->xDec($pos->POSITION_TOTALPRICE, '0');
+            $explicit = (float)$this->xDec($pos->POSITION_TOTALPRICE);
             $childNodes = [];
             foreach ($children as $c) {
                 $childNodes[] = $this->xBuildNode($c, $pushUp, $pushUpMode);
@@ -507,6 +507,7 @@ class XIOPD
                         $cn['uiGross'] = $cn['gross'];
                         $cn['priceCarrier'] = false;
                     }
+                    unset($cn);
                     $netTechnical += $headCompTotal;
 
                     // UI-Anzeige am Kopf = Summe (vorher sichtbarer) Kinder + Kopfanteile
@@ -514,6 +515,7 @@ class XIOPD
                     foreach ($childNodes as $cn) {
                         $uiChildren += ($cn['uiNet'] ?? $cn['net']);
                     }
+                    /** @noinspection DuplicatedCode */
                     $uiNet = $uiChildren + $headCompTotal;
 
                     return [
@@ -567,12 +569,13 @@ class XIOPD
                     // UI-Anzeige am Kopf = Summe der (ursprünglichen) Kinder + Kopfanteile
                     $uiChildren = 0.0;
                     foreach ($childNodes as $cn) {
-                        // Synthetic NICHT doppelt zählen -> nur Original-Kinder berücksichtigen
+                        // Synthetic NICHT doppelt zählen → nur Original-Kinder berücksichtigen
                         if ($cn['id'] === $synthetic['id']) {
                             continue;
                         }
                         $uiChildren += ($cn['uiNet'] ?? ($cn['priceCarrier'] ? $cn['net'] : 0.0));
                     }
+                    /** @noinspection DuplicatedCode */
                     $uiNet = $uiChildren + $headCompTotal;
 
                     return [
@@ -627,7 +630,7 @@ class XIOPD
         $leafNet = $headCompTotal;
         $comps = array_merge($headP['rows'], $headL['rows'], $headE['rows']);
         if ($leafNet <= 0.0) {
-            $price = isset($pos->POSITION_PRICE) ? (float)$this->xDec($pos->POSITION_PRICE, '0') : 0.0;
+            $price = isset($pos->POSITION_PRICE) ? (float)$this->xDec($pos->POSITION_PRICE) : 0.0;
             $base = isset($pos->POSITION_PRICEBASE) ? max(1.0, (float)$this->xDec($pos->POSITION_PRICEBASE, '1')) : 1.0;
             $leafNet = $price * ($qty > 0 ? $qty : 1.0) / $base;
         }
@@ -657,16 +660,16 @@ class XIOPD
         ];
     }
 
-    protected function xCompExternal(?\SimpleXMLElement $e): array
+    protected function xCompExternal(?SimpleXMLElement $e): array
     {
         if (!$e) {
             return ['total' => 0.0, 'rows' => []];
         }
         if (isset($e->EXTERNAL_SERVICE_TOTALPRICE) && trim((string)$e->EXTERNAL_SERVICE_TOTALPRICE) !== '') {
-            $tp = $this->xF($this->xDec($e->EXTERNAL_SERVICE_TOTALPRICE, '0'));
+            $tp = $this->xF($this->xDec($e->EXTERNAL_SERVICE_TOTALPRICE));
         } else {
-            $price = isset($e->EXTERNAL_SERVICE_PRICE) ? $this->xF($this->xDec($e->EXTERNAL_SERVICE_PRICE, '0')) : 0.0;
-            $qty = isset($e->EXTERNAL_SERVICE_QTY) ? $this->xF($this->xDec($e->EXTERNAL_SERVICE_QTY, '0')) : 0.0;
+            $price = isset($e->EXTERNAL_SERVICE_PRICE) ? $this->xF($this->xDec($e->EXTERNAL_SERVICE_PRICE)) : 0.0;
+            $qty = isset($e->EXTERNAL_SERVICE_QTY) ? $this->xF($this->xDec($e->EXTERNAL_SERVICE_QTY)) : 0.0;
             $base = isset($e->EXTERNAL_SERVICE_PRICEBASE) ? max(
                     1.0,
                     $this->xF($this->xDec($e->EXTERNAL_SERVICE_PRICEBASE, '1'))
@@ -678,10 +681,10 @@ class XIOPD
                 'kind' => isset($e->EXTERNAL_SERVICE_KIND) ? trim(
                         (string)$e->EXTERNAL_SERVICE_KIND
                 ) : 'External service',
-                'qty' => isset($e->EXTERNAL_SERVICE_QTY) ? $this->xF($this->xDec($e->EXTERNAL_SERVICE_QTY, '0')) : 0.0,
+                'qty' => isset($e->EXTERNAL_SERVICE_QTY) ? $this->xF($this->xDec($e->EXTERNAL_SERVICE_QTY)) : 0.0,
                 'unit' => isset($e->EXTERNAL_SERVICE_UNIT) ? trim((string)$e->EXTERNAL_SERVICE_UNIT) : '',
                 'price' => isset($e->EXTERNAL_SERVICE_PRICE) ? $this->xF(
-                        $this->xDec($e->EXTERNAL_SERVICE_PRICE, '0')
+                        $this->xDec($e->EXTERNAL_SERVICE_PRICE)
                 ) : null,
                 'pbase' => isset($e->EXTERNAL_SERVICE_PRICEBASE) ? $this->xF(
                         $this->xDec($e->EXTERNAL_SERVICE_PRICEBASE, '1')
@@ -691,46 +694,46 @@ class XIOPD
         return ['total' => $tp, 'rows' => [$row]];
     }
 
-    protected function xCompLabour(?\SimpleXMLElement $l): array
+    protected function xCompLabour(?SimpleXMLElement $l): array
     {
         if (!$l) {
             return ['total' => 0.0, 'rows' => []];
         }
         if (isset($l->LABOUR_TOTALPRICE) && trim((string)$l->LABOUR_TOTALPRICE) !== '') {
-            $tp = $this->xF($this->xDec($l->LABOUR_TOTALPRICE, '0'));
+            $tp = $this->xF($this->xDec($l->LABOUR_TOTALPRICE));
         } elseif (isset($l->TOTALPRICE) && trim((string)$l->TOTALPRICE) !== '') {
-            $tp = $this->xF($this->xDec($l->TOTALPRICE, '0'));
+            $tp = $this->xF($this->xDec($l->TOTALPRICE));
         } else {
-            $price = isset($l->LABOUR_PRICE) ? $this->xF($this->xDec($l->LABOUR_PRICE, '0')) : 0.0;
+            $price = isset($l->LABOUR_PRICE) ? $this->xF($this->xDec($l->LABOUR_PRICE)) : 0.0;
             $base = isset($l->LABOUR_PRICEBASE) ? max(1.0, $this->xF($this->xDec($l->LABOUR_PRICEBASE, '1'))) : 1.0;
-            $time = isset($l->LABOUR_TIME) ? $this->xF($this->xDec($l->LABOUR_TIME, '0')) : 0.0;
+            $time = isset($l->LABOUR_TIME) ? $this->xF($this->xDec($l->LABOUR_TIME)) : 0.0;
             $tp = ($price / $base) * $time;
         }
         $row = [
                 'type' => 'LABOUR',
                 'kind' => isset($l->LABOUR_KIND) ? trim((string)$l->LABOUR_KIND) : 'Labour',
-                'time' => isset($l->LABOUR_TIME) ? $this->xF($this->xDec($l->LABOUR_TIME, '0')) : 0.0,
+                'time' => isset($l->LABOUR_TIME) ? $this->xF($this->xDec($l->LABOUR_TIME)) : 0.0,
                 'unit' => isset($l->LABOUR_UNIT) ? trim(
                         (string)$l->LABOUR_UNIT
                 ) : (isset($l->LABOUR_PRICEBASE) ? 'MIN' : ''),
-                'price' => isset($l->LABOUR_PRICE) ? $this->xF($this->xDec($l->LABOUR_PRICE, '0')) : null,
+                'price' => isset($l->LABOUR_PRICE) ? $this->xF($this->xDec($l->LABOUR_PRICE)) : null,
                 'pbase' => isset($l->LABOUR_PRICEBASE) ? $this->xF($this->xDec($l->LABOUR_PRICEBASE, '1')) : 1.0,
-                'vat' => isset($l->LABOUR_VAT) ? $this->xF($this->xDec($l->LABOUR_VAT, '0')) : null,
+                'vat' => isset($l->LABOUR_VAT) ? $this->xF($this->xDec($l->LABOUR_VAT)) : null,
                 'total' => $tp
         ];
         return ['total' => $tp, 'rows' => [$row]];
     }
 
-    protected function xCompProduct(?\SimpleXMLElement $p): array
+    protected function xCompProduct(?SimpleXMLElement $p): array
     {
         if (!$p) {
             return ['total' => 0.0, 'rows' => []];
         }
         if (isset($p->TOTALPRICE) && trim((string)$p->TOTALPRICE) !== '') {
-            $tp = $this->xF($this->xDec($p->TOTALPRICE, '0'));
+            $tp = $this->xF($this->xDec($p->TOTALPRICE));
         } else {
-            $price = isset($p->PRICE) ? $this->xF($this->xDec($p->PRICE, '0')) : 0.0;
-            $qty = isset($p->QTY) ? $this->xF($this->xDec($p->QTY, '0')) : 0.0;
+            $price = isset($p->PRICE) ? $this->xF($this->xDec($p->PRICE)) : 0.0;
+            $qty = isset($p->QTY) ? $this->xF($this->xDec($p->QTY)) : 0.0;
             $pb = isset($p->PRICEBASE) ? max(1.0, $this->xF($this->xDec($p->PRICEBASE, '1'))) : 1.0;
             $tp = $price * $qty / $pb;
         }
@@ -739,43 +742,43 @@ class XIOPD
                 'artno' => isset($p->ARTNO) ? trim((string)$p->ARTNO) : '',
                 'gtin' => isset($p->GTIN) ? trim((string)$p->GTIN) : '',
                 'text' => isset($p->SHORTDESCRIPTION) ? trim((string)$p->SHORTDESCRIPTION) : '',
-                'qty' => isset($p->QTY) ? $this->xF($this->xDec($p->QTY, '0')) : 0.0,
+                'qty' => isset($p->QTY) ? $this->xF($this->xDec($p->QTY)) : 0.0,
                 'unit' => isset($p->QU) ? trim((string)$p->QU) : '',
-                'price' => isset($p->PRICE) ? $this->xF($this->xDec($p->PRICE, '0')) : null,
+                'price' => isset($p->PRICE) ? $this->xF($this->xDec($p->PRICE)) : null,
                 'pbase' => isset($p->PRICEBASE) ? $this->xF($this->xDec($p->PRICEBASE, '1')) : 1.0,
-                'baseprice' => isset($p->BASEPRICE) ? $this->xF($this->xDec($p->BASEPRICE, '0')) : null,
-                'vat' => isset($p->VAT) ? $this->xF($this->xDec($p->VAT, '0')) : null,
+                'baseprice' => isset($p->BASEPRICE) ? $this->xF($this->xDec($p->BASEPRICE)) : null,
+                'vat' => isset($p->VAT) ? $this->xF($this->xDec($p->VAT)) : null,
                 'total' => $tp
         ];
         return ['total' => $tp, 'rows' => [$row]];
     }
 
-    protected function xVatOf(\SimpleXMLElement $pos): float
+    protected function xVatOf(SimpleXMLElement $pos): float
     {
         if (isset($pos->POSITION_VAT) && trim((string)$pos->POSITION_VAT) !== '') {
-            return $this->xF($this->xDec($pos->POSITION_VAT, '0'));
+            return $this->xF($this->xDec($pos->POSITION_VAT));
         }
         if (isset($pos->PRODUCT->VAT) && trim((string)$pos->PRODUCT->VAT) !== '') {
-            return $this->xF($this->xDec($pos->PRODUCT->VAT, '0'));
+            return $this->xF($this->xDec($pos->PRODUCT->VAT));
         }
         if (isset($pos->LABOUR->LABOUR_VAT) && trim((string)$pos->LABOUR->LABOUR_VAT) !== '') {
-            return $this->xF($this->xDec($pos->LABOUR->LABOUR_VAT, '0'));
+            return $this->xF($this->xDec($pos->LABOUR->LABOUR_VAT));
         }
         return 0.0;
     }
 
-    protected function xUnitOf(\SimpleXMLElement $pos): string
+    protected function xUnitOf(SimpleXMLElement $pos): string
     {
         return isset($pos->POSITION_UNIT) ? trim((string)$pos->POSITION_UNIT) : '';
     }
 
-    protected function xQtyOf(\SimpleXMLElement $pos): float
+    protected function xQtyOf(SimpleXMLElement $pos): float
     {
         return (isset($pos->POSITION_QTY) && trim((string)$pos->POSITION_QTY) !== '')
                 ? $this->xF($this->xDec($pos->POSITION_QTY, '1')) : 1.0;
     }
 
-    protected function xLongHtml(\SimpleXMLElement $pos): ?string
+    protected function xLongHtml(SimpleXMLElement $pos): ?string
     {
         foreach ($pos->xpath("TEXT[@type='longdescription']") as $t) {
             $f = strtolower((string)($t['format'] ?? ''));
@@ -788,9 +791,9 @@ class XIOPD
         return null;
     }
 
-    protected function xText(\SimpleXMLElement $pos, string $type = 'shortdescription'): string
+    protected function xText(SimpleXMLElement $pos, string $type = 'shortdescription'): string
     {
-        $xp = $type ? "TEXT[@type='{$type}']" : 'TEXT';
+        $xp = $type ? "TEXT[@type='$type']" : 'TEXT';
         $n = $pos->xpath($xp);
         if (!empty($n)) {
             return trim((string)$n[0]);
@@ -832,11 +835,8 @@ class XIOPD
         $s = str_replace(["\u{00A0}", ' '], '', $s);
         if (preg_match('/^\d{1,3}(\.\d{3})*,\d{2}$/', $s)) {
             $s = str_replace('.', '', $s);
-            $s = str_replace(',', '.', $s);
-        } else {
-            $s = str_replace(',', '.', $s);
         }
-        return $s;
+        return str_replace(',', '.', $s);
     }
 
     protected function xEsc(string $s): string
@@ -844,12 +844,12 @@ class XIOPD
         return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 
-    protected function xParseXml(string $xmlString): \SimpleXMLElement
+    protected function xParseXml(string $xmlString): SimpleXMLElement
     {
         libxml_use_internal_errors(true);
         $xml = simplexml_load_string($xmlString);
         if (!$xml) {
-            throw new \RuntimeException('XIOPD: XML could not be loaded.');
+            throw new RuntimeException('XIOPD: XML could not be loaded.');
         }
         return $xml;
     }
@@ -987,7 +987,7 @@ SUCCESS;
             /**
              * Das Strukturelement kann einen POSITION_TOTALPRICE haben, allerdings keine Menge (POSITION_QTY) und
              * keinen Einzelpreis (POSITION_PRICE). Mit POSITION_TOTALPRICE ist es ein Pauschalpreis für den Titel. Alle
-             * Preisangaben unten drunter sind rein informativ. Ansonsten errechnet sich der POSITION_TOTALPRICE des
+             * Preisangaben unten darunter sind rein informativ. Ansonsten errechnet sich der POSITION_TOTALPRICE des
              * Strukturelementes aus der Summe der darunter liegen Strukturen und Positionen.
              */
             if (isset($position['POSITION_QTY']) || isset($position['POSITION_PRICE'])):
@@ -1002,7 +1002,7 @@ SUCCESS;
 
         if ($hasProduct || $hasLabour || $hasExternalService):
             /**
-             * Auch wenn der POSITION_PRICE oder  POSITION_TOTALPRICE leer ist, weil er sich aus den nachfolgenden
+             * Auch wenn der POSITION_PRICE oder POSITION_TOTALPRICE leer ist, weil er sich aus den nachfolgenden
              * Positionen errechnet (Vererbung), müssen POSITION_QTY, POSITION_QU und POSITION_VAT gefüllt sein.
              */
             if (!$this->hastElementAndElementNotEmpty(
@@ -1029,7 +1029,7 @@ SUCCESS;
     }
 
     /**
-     * Display Error if Resource is not validated as table
+     * Display Error if Resource is not validated as a table
      *
      * @param array|null $errors
      * @return string

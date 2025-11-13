@@ -91,7 +91,7 @@ MODAL;
                 <label for="floatingSelectVersion">selects the version to validate</label>
             </div>
             <div class="mb-3">
-                <label for="formFile" class="form-label">Select file to validate</label>
+                <label for="formFile" class="form-label">Select a file to validate</label>
                 <input class="form-control" type="file" id="formFile" required accept="text/xml" name="xml">
             </div>
             <button type="submit" class="btn btn-primary mb-3">Check XML file</button>
