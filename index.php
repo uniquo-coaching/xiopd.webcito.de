@@ -85,7 +85,7 @@ MODAL;
             <div class="form-floating mb-3">
                 <select required name="version" class="form-select" id="floatingSelectVersion"
                         aria-label="Floating label select example">
-                    <option value="1">1</option>
+<!--                    <option value="1">1</option>-->
                     <option value="1.10" selected>1.1</option>
                 </select>
                 <label for="floatingSelectVersion">selects the version to validate</label>
@@ -101,6 +101,12 @@ MODAL;
                 <hr>
                 <a href="inc/Handbuch-xi-opd_V1.0.pdf" download>Manual (german) V1</a>
                 <a href="inc/Exchange_Interface_Open_ProjectData_102.xsd" download>download xsd Scheme V1</a>
+            </div>
+            <hr>
+            <div class="d-flex flex-column">
+                <a href="inc/examples/example_default.xml" download>example default</a>
+                <a href="inc/examples/example_jumbo.xml" download>example jumbo</a>
+
             </div>
         </form>
     </section>

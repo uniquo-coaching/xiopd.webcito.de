@@ -1,0 +1,288 @@
+<?xml version="1.0" ?>
+<PROJECTDATA version="1.1">
+  <PROJECTHEAD>
+    <GENERATORINFO>DemoSystem</GENERATORINFO>
+    <GENERATION_DATE>2025-11-13</GENERATION_DATE>
+    <PROJECTINFO>
+      <PROJECTNAME>Realistische Jumbo-Sets</PROJECTNAME>
+      <PROJECTTYPE>offer</PROJECTTYPE>
+      <PROJECTDESCRIPTION>
+        <TEXT type="shortdescription" format="unformatted">Praxisnahe Sets für Sanitär und Heizung</TEXT>
+      </PROJECTDESCRIPTION>
+      <PROJECTCREATOR>Thomas Kirsch</PROJECTCREATOR>
+      <IDENTIFICATION_NUMBER type="offer">OFFER-JUMBO-REAL-20251113</IDENTIFICATION_NUMBER>
+      <DATE type="document">2025-11-13T15:46:01</DATE>
+      <CURRENCY>EUR</CURRENCY>
+    </PROJECTINFO>
+    <PARTY type="supplier">
+      <NAME1>Demo Lieferant GmbH</NAME1>
+    </PARTY>
+  </PROJECTHEAD>
+  <POSITION>
+    <POSITIONNUMBER>1</POSITIONNUMBER>
+    <TEXT type="shortdescription" format="unformatted">Badinstallation Komplettset</TEXT>
+    <POSITION_CHARA>normal</POSITION_CHARA>
+    <POSITION_VAT>19</POSITION_VAT>
+    <POSITION_UNIT>SET</POSITION_UNIT>
+    <POSITION_QTY>2</POSITION_QTY>
+    <POSITION>
+      <POSITIONNUMBER>1.1</POSITIONNUMBER>
+      <TEXT type="shortdescription" format="unformatted">Waschtisch mit Armatur</TEXT>
+      <POSITION_CHARA>normal</POSITION_CHARA>
+      <POSITION_VAT>19</POSITION_VAT>
+      <POSITION_UNIT>PCE</POSITION_UNIT>
+      <POSITION_QTY>3</POSITION_QTY>
+      <PRODUCT>
+        <ARTNO>ART11</ARTNO>
+        <SHORTDESCRIPTION format="unformatted">Waschtisch mit Armatur</SHORTDESCRIPTION>
+        <BASEPRICE>159.0400</BASEPRICE>
+        <PRICE>171.0400</PRICE>
+        <VAT>19</VAT>
+        <QU>PCE</QU>
+        <QTY>3</QTY>
+        <TOTALPRICE>513.12</TOTALPRICE>
+      </PRODUCT>
+      <LABOUR>
+        <LABOUR_KIND>craftsman</LABOUR_KIND>
+        <LABOUR_PRICE>45.0000</LABOUR_PRICE>
+        <LABOUR_PRICEBASE>60</LABOUR_PRICEBASE>
+        <LABOUR_UNIT>MIN</LABOUR_UNIT>
+        <LABOUR_VAT>19</LABOUR_VAT>
+        <LABOUR_TIME>88</LABOUR_TIME>
+        <LABOUR_TOTALPRICE>66.00</LABOUR_TOTALPRICE>
+      </LABOUR>
+    </POSITION>
+    <POSITION>
+      <POSITIONNUMBER>1.2</POSITIONNUMBER>
+      <TEXT type="shortdescription" format="unformatted">Eckventile verchromt</TEXT>
+      <POSITION_CHARA>normal</POSITION_CHARA>
+      <POSITION_VAT>19</POSITION_VAT>
+      <POSITION_UNIT>PCE</POSITION_UNIT>
+      <POSITION_QTY>3</POSITION_QTY>
+      <PRODUCT>
+        <ARTNO>ART12</ARTNO>
+        <SHORTDESCRIPTION format="unformatted">Eckventile verchromt</SHORTDESCRIPTION>
+        <BASEPRICE>236.5900</BASEPRICE>
+        <PRICE>242.2900</PRICE>
+        <VAT>19</VAT>
+        <QU>PCE</QU>
+        <QTY>1</QTY>
+        <TOTALPRICE>242.29</TOTALPRICE>
+      </PRODUCT>
+      <LABOUR>
+        <LABOUR_KIND>craftsman</LABOUR_KIND>
+        <LABOUR_PRICE>45.0000</LABOUR_PRICE>
+        <LABOUR_PRICEBASE>60</LABOUR_PRICEBASE>
+        <LABOUR_UNIT>MIN</LABOUR_UNIT>
+        <LABOUR_VAT>19</LABOUR_VAT>
+        <LABOUR_TIME>51</LABOUR_TIME>
+        <LABOUR_TOTALPRICE>38.25</LABOUR_TOTALPRICE>
+      </LABOUR>
+    </POSITION>
+    <POSITION>
+      <POSITIONNUMBER>1.3</POSITIONNUMBER>
+      <TEXT type="shortdescription" format="unformatted">Montagearbeiten</TEXT>
+      <POSITION_CHARA>normal</POSITION_CHARA>
+      <POSITION_VAT>19</POSITION_VAT>
+      <POSITION_UNIT>PCE</POSITION_UNIT>
+      <POSITION_QTY>2</POSITION_QTY>
+      <PRODUCT>
+        <ARTNO>ART13</ARTNO>
+        <SHORTDESCRIPTION format="unformatted">Montagearbeiten</SHORTDESCRIPTION>
+        <BASEPRICE>247.0700</BASEPRICE>
+        <PRICE>257.0500</PRICE>
+        <VAT>19</VAT>
+        <QU>PCE</QU>
+        <QTY>3</QTY>
+        <TOTALPRICE>771.15</TOTALPRICE>
+      </PRODUCT>
+      <LABOUR>
+        <LABOUR_KIND>craftsman</LABOUR_KIND>
+        <LABOUR_PRICE>45.0000</LABOUR_PRICE>
+        <LABOUR_PRICEBASE>60</LABOUR_PRICEBASE>
+        <LABOUR_UNIT>MIN</LABOUR_UNIT>
+        <LABOUR_VAT>19</LABOUR_VAT>
+        <LABOUR_TIME>36</LABOUR_TIME>
+        <LABOUR_TOTALPRICE>27.00</LABOUR_TOTALPRICE>
+      </LABOUR>
+    </POSITION>
+  </POSITION>
+  <POSITION>
+    <POSITIONNUMBER>2</POSITIONNUMBER>
+    <TEXT type="shortdescription" format="unformatted">Küchenanschluss Paket</TEXT>
+    <POSITION_CHARA>normal</POSITION_CHARA>
+    <POSITION_VAT>19</POSITION_VAT>
+    <POSITION_UNIT>SET</POSITION_UNIT>
+    <POSITION_QTY>2</POSITION_QTY>
+    <POSITION>
+      <POSITIONNUMBER>2.1</POSITIONNUMBER>
+      <TEXT type="shortdescription" format="unformatted">Spültischarmatur</TEXT>
+      <POSITION_CHARA>normal</POSITION_CHARA>
+      <POSITION_VAT>19</POSITION_VAT>
+      <POSITION_UNIT>PCE</POSITION_UNIT>
+      <POSITION_QTY>3</POSITION_QTY>
+      <PRODUCT>
+        <ARTNO>ART21</ARTNO>
+        <SHORTDESCRIPTION format="unformatted">Spültischarmatur</SHORTDESCRIPTION>
+        <BASEPRICE>60.6400</BASEPRICE>
+        <PRICE>73.3500</PRICE>
+        <VAT>19</VAT>
+        <QU>PCE</QU>
+        <QTY>1</QTY>
+        <TOTALPRICE>73.35</TOTALPRICE>
+      </PRODUCT>
+      <LABOUR>
+        <LABOUR_KIND>craftsman</LABOUR_KIND>
+        <LABOUR_PRICE>45.0000</LABOUR_PRICE>
+        <LABOUR_PRICEBASE>60</LABOUR_PRICEBASE>
+        <LABOUR_UNIT>MIN</LABOUR_UNIT>
+        <LABOUR_VAT>19</LABOUR_VAT>
+        <LABOUR_TIME>58</LABOUR_TIME>
+        <LABOUR_TOTALPRICE>43.50</LABOUR_TOTALPRICE>
+      </LABOUR>
+    </POSITION>
+    <POSITION>
+      <POSITIONNUMBER>2.2</POSITIONNUMBER>
+      <TEXT type="shortdescription" format="unformatted">Anschlussmaterial</TEXT>
+      <POSITION_CHARA>normal</POSITION_CHARA>
+      <POSITION_VAT>19</POSITION_VAT>
+      <POSITION_UNIT>PCE</POSITION_UNIT>
+      <POSITION_QTY>1</POSITION_QTY>
+      <PRODUCT>
+        <ARTNO>ART22</ARTNO>
+        <SHORTDESCRIPTION format="unformatted">Anschlussmaterial</SHORTDESCRIPTION>
+        <BASEPRICE>79.8800</BASEPRICE>
+        <PRICE>99.7800</PRICE>
+        <VAT>19</VAT>
+        <QU>PCE</QU>
+        <QTY>3</QTY>
+        <TOTALPRICE>299.34</TOTALPRICE>
+      </PRODUCT>
+      <LABOUR>
+        <LABOUR_KIND>craftsman</LABOUR_KIND>
+        <LABOUR_PRICE>45.0000</LABOUR_PRICE>
+        <LABOUR_PRICEBASE>60</LABOUR_PRICEBASE>
+        <LABOUR_UNIT>MIN</LABOUR_UNIT>
+        <LABOUR_VAT>19</LABOUR_VAT>
+        <LABOUR_TIME>79</LABOUR_TIME>
+        <LABOUR_TOTALPRICE>59.25</LABOUR_TOTALPRICE>
+      </LABOUR>
+    </POSITION>
+    <POSITION>
+      <POSITIONNUMBER>2.3</POSITIONNUMBER>
+      <TEXT type="shortdescription" format="unformatted">Installationsarbeiten</TEXT>
+      <POSITION_CHARA>normal</POSITION_CHARA>
+      <POSITION_VAT>19</POSITION_VAT>
+      <POSITION_UNIT>PCE</POSITION_UNIT>
+      <POSITION_QTY>3</POSITION_QTY>
+      <PRODUCT>
+        <ARTNO>ART23</ARTNO>
+        <SHORTDESCRIPTION format="unformatted">Installationsarbeiten</SHORTDESCRIPTION>
+        <BASEPRICE>246.6000</BASEPRICE>
+        <PRICE>256.3800</PRICE>
+        <VAT>19</VAT>
+        <QU>PCE</QU>
+        <QTY>2</QTY>
+        <TOTALPRICE>512.76</TOTALPRICE>
+      </PRODUCT>
+      <LABOUR>
+        <LABOUR_KIND>craftsman</LABOUR_KIND>
+        <LABOUR_PRICE>45.0000</LABOUR_PRICE>
+        <LABOUR_PRICEBASE>60</LABOUR_PRICEBASE>
+        <LABOUR_UNIT>MIN</LABOUR_UNIT>
+        <LABOUR_VAT>19</LABOUR_VAT>
+        <LABOUR_TIME>35</LABOUR_TIME>
+        <LABOUR_TOTALPRICE>26.25</LABOUR_TOTALPRICE>
+      </LABOUR>
+    </POSITION>
+  </POSITION>
+  <POSITION>
+    <POSITIONNUMBER>3</POSITIONNUMBER>
+    <TEXT type="shortdescription" format="unformatted">Heizkörpermontage Set</TEXT>
+    <POSITION_CHARA>normal</POSITION_CHARA>
+    <POSITION_VAT>19</POSITION_VAT>
+    <POSITION_UNIT>SET</POSITION_UNIT>
+    <POSITION_QTY>2</POSITION_QTY>
+    <POSITION>
+      <POSITIONNUMBER>3.1</POSITIONNUMBER>
+      <TEXT type="shortdescription" format="unformatted">Heizkörper Typ 22</TEXT>
+      <POSITION_CHARA>normal</POSITION_CHARA>
+      <POSITION_VAT>19</POSITION_VAT>
+      <POSITION_UNIT>PCE</POSITION_UNIT>
+      <POSITION_QTY>2</POSITION_QTY>
+      <PRODUCT>
+        <ARTNO>ART31</ARTNO>
+        <SHORTDESCRIPTION format="unformatted">Heizkörper Typ 22</SHORTDESCRIPTION>
+        <BASEPRICE>152.0900</BASEPRICE>
+        <PRICE>163.4200</PRICE>
+        <VAT>19</VAT>
+        <QU>PCE</QU>
+        <QTY>2</QTY>
+        <TOTALPRICE>326.84</TOTALPRICE>
+      </PRODUCT>
+      <LABOUR>
+        <LABOUR_KIND>craftsman</LABOUR_KIND>
+        <LABOUR_PRICE>45.0000</LABOUR_PRICE>
+        <LABOUR_PRICEBASE>60</LABOUR_PRICEBASE>
+        <LABOUR_UNIT>MIN</LABOUR_UNIT>
+        <LABOUR_VAT>19</LABOUR_VAT>
+        <LABOUR_TIME>68</LABOUR_TIME>
+        <LABOUR_TOTALPRICE>51.00</LABOUR_TOTALPRICE>
+      </LABOUR>
+    </POSITION>
+    <POSITION>
+      <POSITIONNUMBER>3.2</POSITIONNUMBER>
+      <TEXT type="shortdescription" format="unformatted">Thermostatventil</TEXT>
+      <POSITION_CHARA>normal</POSITION_CHARA>
+      <POSITION_VAT>19</POSITION_VAT>
+      <POSITION_UNIT>PCE</POSITION_UNIT>
+      <POSITION_QTY>2</POSITION_QTY>
+      <PRODUCT>
+        <ARTNO>ART32</ARTNO>
+        <SHORTDESCRIPTION format="unformatted">Thermostatventil</SHORTDESCRIPTION>
+        <BASEPRICE>227.8900</BASEPRICE>
+        <PRICE>235.6100</PRICE>
+        <VAT>19</VAT>
+        <QU>PCE</QU>
+        <QTY>2</QTY>
+        <TOTALPRICE>471.22</TOTALPRICE>
+      </PRODUCT>
+      <LABOUR>
+        <LABOUR_KIND>craftsman</LABOUR_KIND>
+        <LABOUR_PRICE>45.0000</LABOUR_PRICE>
+        <LABOUR_PRICEBASE>60</LABOUR_PRICEBASE>
+        <LABOUR_UNIT>MIN</LABOUR_UNIT>
+        <LABOUR_VAT>19</LABOUR_VAT>
+        <LABOUR_TIME>49</LABOUR_TIME>
+        <LABOUR_TOTALPRICE>36.75</LABOUR_TOTALPRICE>
+      </LABOUR>
+    </POSITION>
+    <POSITION>
+      <POSITIONNUMBER>3.3</POSITIONNUMBER>
+      <TEXT type="shortdescription" format="unformatted">Montage inkl. Befüllung</TEXT>
+      <POSITION_CHARA>normal</POSITION_CHARA>
+      <POSITION_VAT>19</POSITION_VAT>
+      <POSITION_UNIT>PCE</POSITION_UNIT>
+      <POSITION_QTY>4</POSITION_QTY>
+      <PRODUCT>
+        <ARTNO>ART33</ARTNO>
+        <SHORTDESCRIPTION format="unformatted">Montage inkl. Befüllung</SHORTDESCRIPTION>
+        <BASEPRICE>298.2200</BASEPRICE>
+        <PRICE>314.5200</PRICE>
+        <VAT>19</VAT>
+        <QU>PCE</QU>
+        <QTY>3</QTY>
+        <TOTALPRICE>943.56</TOTALPRICE>
+      </PRODUCT>
+      <LABOUR>
+        <LABOUR_KIND>craftsman</LABOUR_KIND>
+        <LABOUR_PRICE>45.0000</LABOUR_PRICE>
+        <LABOUR_PRICEBASE>60</LABOUR_PRICEBASE>
+        <LABOUR_UNIT>MIN</LABOUR_UNIT>
+        <LABOUR_VAT>19</LABOUR_VAT>
+        <LABOUR_TIME>58</LABOUR_TIME>
+        <LABOUR_TOTALPRICE>43.50</LABOUR_TOTALPRICE>
+      </LABOUR>
+    </POSITION>
+  </POSITION>
+</PROJECTDATA>
