@@ -37,6 +37,7 @@ MODAL;
 SUCCESS;
             try {
                 if ($xiopd->validateLogic(false)) {
+                    echo $xiopd->renderXiOpdProjectTable();
                     echo $xiopd->renderXiOpdTable();
                 }
             } catch (Exception $e) {

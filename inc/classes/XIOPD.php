@@ -64,6 +64,409 @@ class XIOPD
         $this->content = $contents;
     }
 
+    /**
+     * Erzeugt eine Bootstrap-5-Tabelle mit allen Projektinformationen (ohne Positionen)
+     * aus einer xi:opd XML.
+     *
+     * @param string $xml Die xi:opd XML als String.
+     * @return string      HTML-String mit <table>…</table>
+     * @throws InvalidArgumentException bei ungültigem XML oder fehlendem PROJECTHEAD.
+     */
+    public function renderXiOpdProjectTable(): string
+    {
+        $xml = $this->content;
+        libxml_use_internal_errors(true);
+
+        $dom = new DOMDocument();
+        if (!$dom->loadXML($xml, LIBXML_NOBLANKS | LIBXML_NOERROR | LIBXML_NOWARNING)) {
+            $err = libxml_get_last_error();
+            throw new InvalidArgumentException(
+                    'Ungültiges XML: ' . ($err ? trim($err->message) : 'Parserfehler')
+            );
+        }
+        $xp = new DOMXPath($dom);
+
+        $esc = fn(?string $v) => htmlspecialchars((string)$v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+        // Helper: first node text
+        $txt = function (?DOMNode $ctx, string $path) use ($xp): ?string {
+            $n = $xp->query($path, $ctx)->item(0);
+            return $n ? trim($n->textContent ?? '') : null;
+        };
+
+        $root = $xp->query('/*')->item(0);
+        $head = $xp->query('/*/*[local-name()="PROJECTHEAD"]')->item(0);
+        if (!$head) {
+            throw new InvalidArgumentException('PROJECTHEAD wurde im XML nicht gefunden.');
+        }
+
+        // PROJECTDATA version (Attribut)
+        $version = ($root instanceof DOMElement && $root->hasAttribute('version'))
+                ? trim($root->getAttribute('version')) : null;
+
+        // Kopf-Metadaten
+        $generatorInfo = $txt($head, './*[local-name()="GENERATORINFO"]');
+        $generationDate = $txt($head, './*[local-name()="GENERATION_DATE"]');
+
+        // PROJECTINFO
+        $pi = $xp->query('./*[local-name()="PROJECTINFO"]', $head)->item(0);
+
+        $projectName = $pi ? $txt($pi, './*[local-name()="PROJECTNAME"]') : null;
+        $projectType = $pi ? $txt($pi, './*[local-name()="PROJECTTYPE"]') : null;
+        $projectCreator = $pi ? $txt($pi, './*[local-name()="PROJECTCREATOR"]') : null;
+        $currency = $pi ? $txt($pi, './*[local-name()="CURRENCY"]') : null;
+
+        // PROJECTDESCRIPTION -> TEXT (mehrfach: type/format)
+        $descRows = [];
+        if ($pi) {
+            foreach ($xp->query('./*[local-name()="PROJECTDESCRIPTION"]/*[local-name()="TEXT"]', $pi) as $textNode) {
+                /** @var DOMElement $textNode */
+                $type = $textNode->hasAttribute('type') ? trim($textNode->getAttribute('type')) : null;
+                $format = $textNode->hasAttribute('format') ? trim($textNode->getAttribute('format')) : null;
+                $value = trim($textNode->textContent ?? '');
+                $descRows[] = [
+                        'type' => $type,
+                        'format' => $format,
+                        'value' => $value,
+                ];
+            }
+        }
+
+        // IDENTIFICATION_NUMBER (0..n)
+        $idRows = [];
+        if ($pi) {
+            foreach ($xp->query('./*[local-name()="IDENTIFICATION_NUMBER"]', $pi) as $idNode) {
+                /** @var DOMElement $idNode */
+                $idRows[] = [
+                        'type' => $idNode->hasAttribute('type') ? trim($idNode->getAttribute('type')) : null,
+                        'value' => trim($idNode->textContent ?? ''),
+                ];
+            }
+        }
+
+        // DATE (1..n, mit @type)
+        $dateRows = [];
+        if ($pi) {
+            foreach ($xp->query('./*[local-name()="DATE"]', $pi) as $dateNode) {
+                /** @var DOMElement $dateNode */
+                $dateRows[] = [
+                        'type' => $dateNode->hasAttribute('type') ? trim($dateNode->getAttribute('type')) : null,
+                        'value' => trim($dateNode->textContent ?? ''),
+                ];
+            }
+        }
+
+        // MIME (0..n)
+        $mimeRows = [];
+        if ($pi) {
+            foreach ($xp->query('./*[local-name()="MIME"]', $pi) as $mime) {
+                $mimeRows[] = [
+                        'type' => $txt($mime, './*[local-name()="MIMETYPE"]'),
+                        'desc' => $txt($mime, './*[local-name()="MIMEDESC"]'),
+                        'order' => $txt($mime, './*[local-name()="MIMEORDER"]'),
+                        'data' => $txt($mime, './*[local-name()="MIME_DATA"]'),
+                        'url' => $txt($mime, './*[local-name()="MIME_URL"]'),
+                        'filename' => $txt($mime, './*[local-name()="MIME_FILENAME"]'),
+                ];
+            }
+        }
+
+        // Referenzen (PROJECTINFO-Ebene)
+        $docRefsPI = [];
+        $sysRefsPI = [];
+        if ($pi) {
+            foreach ($xp->query('./*[local-name()="DOCUMENT_REFERENCE"]', $pi) as $dr) {
+                $docRefsPI[] = [
+                        'code' => $txt($dr, './*[local-name()="REFERENCE_TYPE_CODE"]'),
+                        'id' => $txt($dr, './*[local-name()="ID"]'),
+                        'date' => $txt($dr, './*[local-name()="DOCUMENTDATE"]'),
+                        'line' => $txt($dr, './*[local-name()="LineID"]'),
+                ];
+            }
+            foreach ($xp->query('./*[local-name()="SYSTEM_REFERENCE"]', $pi) as $sr) {
+                $sysRefsPI[] = [
+                        'system' => $txt($sr, './*[local-name()="SYSTEM"]'),
+                        'id' => $txt($sr, './*[local-name()="ID"]'),
+                        'date' => $txt($sr, './*[local-name()="DATE"]'),
+                        'line' => $txt($sr, './*[local-name()="LineID"]'),
+                ];
+            }
+        }
+
+        // Referenzen (HEAD-Ebene)
+        $docRefsHead = [];
+        $sysRefsHead = [];
+        foreach ($xp->query('./*[local-name()="DOCUMENT_REFERENCE"]', $head) as $dr) {
+            $docRefsHead[] = [
+                    'code' => $txt($dr, './*[local-name()="REFERENCE_TYPE_CODE"]'),
+                    'id' => $txt($dr, './*[local-name()="ID"]'),
+                    'date' => $txt($dr, './*[local-name()="DOCUMENTDATE"]'),
+                    'line' => $txt($dr, './*[local-name()="LineID"]'),
+            ];
+        }
+        foreach ($xp->query('./*[local-name()="SYSTEM_REFERENCE"]', $head) as $sr) {
+            $sysRefsHead[] = [
+                    'system' => $txt($sr, './*[local-name()="SYSTEM"]'),
+                    'id' => $txt($sr, './*[local-name()="ID"]'),
+                    'date' => $txt($sr, './*[local-name()="DATE"]'),
+                    'line' => $txt($sr, './*[local-name()="LineID"]'),
+            ];
+        }
+
+        // ---------- HTML aufbauen ----------
+        ob_start();
+        ?>
+        <table class="table table-striped table-hover table-sm align-middle">
+            <thead class="table-light">
+            <tr>
+                <th style="width: 22rem;">Feld</th>
+                <th>Wert</th>
+            </tr>
+            </thead>
+            <tbody>
+            <?php if ($version !== null): ?>
+                <tr>
+                    <td><strong>PROJECTDATA / version</strong></td>
+                    <td><code><?= $esc($version) ?></code></td>
+                </tr>
+            <?php endif; ?>
+
+            <?php if ($generatorInfo !== null): ?>
+                <tr>
+                    <td><strong>GENERATORINFO</strong></td>
+                    <td><?= $esc($generatorInfo) ?></td>
+                </tr>
+            <?php endif; ?>
+
+            <?php if ($generationDate !== null): ?>
+                <tr>
+                    <td><strong>GENERATION_DATE</strong></td>
+                    <td><?= $esc($generationDate) ?></td>
+                </tr>
+            <?php endif; ?>
+
+            <?php if ($projectName !== null): ?>
+                <tr>
+                    <td><strong>PROJECTNAME</strong></td>
+                    <td><?= $esc($projectName) ?></td>
+                </tr>
+            <?php endif; ?>
+
+            <?php if ($projectType !== null): ?>
+                <tr>
+                    <td><strong>PROJECTTYPE</strong></td>
+                    <td><span class="badge bg-secondary"><?= $esc($projectType) ?></span></td>
+                </tr>
+            <?php endif; ?>
+
+            <?php if ($projectCreator !== null): ?>
+                <tr>
+                    <td><strong>PROJECTCREATOR</strong></td>
+                    <td><?= $esc($projectCreator) ?></td>
+                </tr>
+            <?php endif; ?>
+
+            <?php if (!empty($descRows)): ?>
+                <tr>
+                    <td><strong>PROJECTDESCRIPTION</strong></td>
+                    <td>
+                        <div class="vstack gap-2">
+                            <?php foreach ($descRows as $d): ?>
+                                <div>
+                                    <div class="small text-muted">
+                                        type: <code><?= $esc($d['type']) ?></code>,
+                                        format: <code><?= $esc($d['format']) ?></code>
+                                    </div>
+                                    <div class="<?= ($d['format'] === 'html' ? '' : 'text-body') ?>">
+                                        <?php
+                                        if ($d['format'] === 'html') {
+                                            // HTML unverändert einbetten (Vorsicht: nur vertrauenswürdige Quelle!).
+                                            echo $d['value'];
+                                        } else {
+                                            echo nl2br($esc($d['value']));
+                                        }
+                                        ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </td>
+                </tr>
+            <?php endif; ?>
+
+            <?php if (!empty($idRows)): ?>
+                <tr>
+                    <td><strong>IDENTIFICATION_NUMBER</strong></td>
+                    <td>
+                        <ul class="list-unstyled mb-0">
+                            <?php foreach ($idRows as $r): ?>
+                                <li>
+                                    <span class="small text-muted me-1">type:</span>
+                                    <code><?= $esc($r['type']) ?></code>
+                                    <span class="mx-1">•</span>
+                                    <span><?= $esc($r['value']) ?></span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </td>
+                </tr>
+            <?php endif; ?>
+
+            <?php if (!empty($dateRows)): ?>
+                <tr>
+                    <td><strong>DATE</strong></td>
+                    <td>
+                        <ul class="list-unstyled mb-0">
+                            <?php foreach ($dateRows as $r): ?>
+                                <li>
+                                    <span class="small text-muted me-1">type:</span>
+                                    <code><?= $esc($r['type']) ?></code>
+                                    <span class="mx-1">•</span>
+                                    <span><?= $esc($r['value']) ?></span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </td>
+                </tr>
+            <?php endif; ?>
+
+            <?php if (!empty($mimeRows)): ?>
+                <tr>
+                    <td><strong>MIME</strong></td>
+                    <td>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm mb-0 align-middle">
+                                <thead class="table-secondary">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Type</th>
+                                    <th>Beschreibung</th>
+                                    <th>URL/Datei</th>
+                                    <th>Base64</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <?php foreach ($mimeRows as $i => $m): ?>
+                                    <tr>
+                                        <td class="text-nowrap"><?= $i + 1 ?></td>
+                                        <td><code><?= $esc($m['type']) ?></code></td>
+                                        <td><?= $esc($m['desc']) ?></td>
+                                        <td class="text-break">
+                                            <?php if (!empty($m['url'])): ?>
+                                                <a href="<?= $esc($m['url']) ?>" target="_blank"
+                                                   rel="noopener"><?= $esc($m['url']) ?></a>
+                                            <?php elseif (!empty($m['filename'])): ?>
+                                                <code><?= $esc($m['filename']) ?></code>
+                                            <?php else: ?>
+                                                <span class="text-muted">–</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if (!empty($m['data'])): ?>
+                                                <span class="badge bg-info-subtle text-info-emphasis">embedded</span>
+                                            <?php else: ?>
+                                                <span class="text-muted">–</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            <?php endif; ?>
+
+            <?php if ($currency !== null): ?>
+                <tr>
+                    <td><strong>CURRENCY</strong></td>
+                    <td><code><?= $esc($currency) ?></code></td>
+                </tr>
+            <?php endif; ?>
+
+            <?php if (!empty($docRefsHead) || !empty($sysRefsHead)): ?>
+                <tr>
+                    <td><strong>HEAD Referenzen</strong></td>
+                    <td>
+                        <?php if (!empty($docRefsHead)): ?>
+                            <div class="mb-2">
+                                <div class="fw-semibold mb-1">DOCUMENT_REFERENCE</div>
+                                <ul class="list-unstyled mb-0">
+                                    <?php foreach ($docRefsHead as $r): ?>
+                                        <li>
+                                            <code><?= $esc($r['code']) ?></code> • <?= $esc($r['id']) ?>
+                                            <?php if ($r['date']): ?> <span class="text-muted"> (<?= $esc($r['date']) ?>)</span><?php endif; ?>
+                                            <?php if ($r['line']): ?> <span class="text-muted">
+                                                [LineID: <?= $esc($r['line']) ?>]</span><?php endif; ?>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (!empty($sysRefsHead)): ?>
+                            <div>
+                                <div class="fw-semibold mb-1">SYSTEM_REFERENCE</div>
+                                <ul class="list-unstyled mb-0">
+                                    <?php foreach ($sysRefsHead as $r): ?>
+                                        <li>
+                                            <code><?= $esc($r['system']) ?></code> • <?= $esc($r['id']) ?>
+                                            <?php if ($r['date']): ?> <span class="text-muted"> (<?= $esc($r['date']) ?>)</span><?php endif; ?>
+                                            <?php if ($r['line']): ?> <span class="text-muted">
+                                                [LineID: <?= $esc($r['line']) ?>]</span><?php endif; ?>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            <?php endif; ?>
+
+            <?php if (!empty($docRefsPI) || !empty($sysRefsPI)): ?>
+                <tr>
+                    <td><strong>PROJECTINFO Referenzen</strong></td>
+                    <td>
+                        <?php if (!empty($docRefsPI)): ?>
+                            <div class="mb-2">
+                                <div class="fw-semibold mb-1">DOCUMENT_REFERENCE</div>
+                                <ul class="list-unstyled mb-0">
+                                    <?php foreach ($docRefsPI as $r): ?>
+                                        <li>
+                                            <code><?= $esc($r['code']) ?></code> • <?= $esc($r['id']) ?>
+                                            <?php if ($r['date']): ?> <span class="text-muted"> (<?= $esc($r['date']) ?>)</span><?php endif; ?>
+                                            <?php if ($r['line']): ?> <span class="text-muted">
+                                                [LineID: <?= $esc($r['line']) ?>]</span><?php endif; ?>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (!empty($sysRefsPI)): ?>
+                            <div>
+                                <div class="fw-semibold mb-1">SYSTEM_REFERENCE</div>
+                                <ul class="list-unstyled mb-0">
+                                    <?php foreach ($sysRefsPI as $r): ?>
+                                        <li>
+                                            <code><?= $esc($r['system']) ?></code> • <?= $esc($r['id']) ?>
+                                            <?php if ($r['date']): ?> <span class="text-muted"> (<?= $esc($r['date']) ?>)</span><?php endif; ?>
+                                            <?php if ($r['line']): ?> <span class="text-muted">
+                                                [LineID: <?= $esc($r['line']) ?>]</span><?php endif; ?>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            <?php endif; ?>
+
+            </tbody>
+        </table>
+        <?php
+
+        return trim(ob_get_clean());
+    }
+
 
     /**
      * Renders a Bootstrap 5 HTML table from $this->content (xi:opd XML)
@@ -419,7 +822,7 @@ class XIOPD
     protected function xBuildNode(SimpleXMLElement $pos, bool $pushUp, string $pushUpMode): array
     {
         $num = isset($pos->POSITIONNUMBER) ? trim((string)$pos->POSITIONNUMBER) : '';
-        $text = $this->xText($pos) ? : $this->xText($pos, '');
+        $text = $this->xText($pos) ?: $this->xText($pos, '');
         $long = $this->xLongHtml($pos);
         $qty = $this->xQtyOf($pos);
         $unit = $this->xUnitOf($pos);
@@ -949,7 +1352,7 @@ class XIOPD
             return false;
         } else {
             if ($showSuccess) {
-            echo <<<SUCCESS
+                echo <<<SUCCESS
 	    <div class="alert alert-success" role="alert">
 		<i class="fas fa-check fa-fw"></i> Logic was successfully validated
 	    </div>
